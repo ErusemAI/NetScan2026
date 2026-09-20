@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>INTEL NODES // Secondary Telemetry Matrix</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+
+:root {
+  --bg: #030508;
+  --panel: rgba(8, 14, 24, 0.94);
+  --panel-border: rgba(0, 240, 255, 0.22);
+  --cyan: #00f0ff;
+  --cyan-glow: rgba(0, 240, 255, 0.45);
+  --magenta: #ff2ec4;
+  --magenta-glow: rgba(255, 46, 196, 0.45);
+  --green: #3dff9c;
+  --green-glow: rgba(61, 255, 156, 0.5);
+  --amber: #ffb454;
+  --red: #ff4d6d;
+  --dim: #5c7587;
+  --text: #d4f7ff;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Share Tech Mono', ui-monospace, Consolas, monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding: 24px 18px 60px;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(0, 240, 255, 0.12), transparent 65%),
+    radial-gradient(circle at 90% 100%, rgba(255, 46, 196, 0.08), transparent 50%),
+    linear-gradient(rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.04) 1px, transparent 1px);
+  background-size: auto, auto, 36px 36px, 36px 36px;
+}
+
+.scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.25;
+  background: repeating-linear-gradient(rgba(0, 0, 0, 0.4) 0 1px, transparent 1px 3px);
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* Header & Glitch Title */
+header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.glitch-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 900;
+  letter-spacing: 0.25em;
+  color: var(--cyan);
+  text-shadow: 0 0 16px var(--cyan-glow), 0 0 32px var(--cyan-glow);
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  color: var(--magenta);
+  font-size: 0.88rem;
+  letter-spacing: 0.3em;
+  text-shadow: 0 0 10px var(--magenta-glow);
+  margin-bottom: 14px;
+}
+
+/* Navigation Buttons */
+.nav-bar {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.btn-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: 'Orbitron', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  padding: 8px 18px;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+}
+
+.btn-nav:hover {
+  background: var(--cyan);
+  color: #030508;
+  box-shadow: 0 0 20px var(--cyan-glow);
+}
+
+.btn-nav.mag {
+  border-color: var(--magenta);
+  color: var(--magenta);
+  background: rgba(255, 46, 196, 0.1);
+}
+
+.btn-nav.mag:hover {
+  background: var(--magenta);
+  color: #fff;
+  box-shadow: 0 0 20px var(--magenta-glow);
+}
+
+/* Live Scanner Radar & Activity Feed */
+.radar-panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 16px 20px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.7);
+}
+
+.radar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-family: 'Orbitron', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  color: var(--cyan);
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  margin-bottom: 12px;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  box-shadow: 0 0 10px var(--cyan);
+  transition: width 0.4s ease;
+}
+
+.terminal-box {
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: 4px;
+  padding: 10px 14px;
+  height: 72px;
+  overflow-y: auto;
+  font-size: 0.78rem;
+  color: var(--dim);
+}
+
+.term-line {
+  line-height: 1.4;
+}
+
+.term-time { color: var(--dim); margin-right: 8px; }
+.term-lvl-INFO { color: var(--cyan); }
+.term-lvl-PROBE { color: var(--amber); }
+.term-lvl-SUCCESS { color: var(--green); }
+
+/* KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.kpi-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan);
+}
+
+.kpi-card.mag::after { background: var(--magenta); box-shadow: 0 0 10px var(--magenta); }
+.kpi-card.grn::after { background: var(--green); box-shadow: 0 0 10px var(--green); }
+.kpi-card.amb::after { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+
+.kpi-label { font-size: 0.72rem; letter-spacing: 0.18em; color: var(--dim); text-transform: uppercase; margin-bottom: 6px; }
+.kpi-value { font-family: 'Orbitron', monospace; font-size: 1.6rem; font-weight: 700; color: var(--text); }
+.kpi-sub { font-size: 0.76rem; color: var(--dim); margin-top: 4px; }
+
+/* Badges, Tags & Dots */
+.status-up { color: var(--green); font-weight: bold; display: inline-flex; align-items: center; gap: 8px; }
+.dot-up {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green); box-shadow: 0 0 8px var(--green);
+  animation: pulse 1.8s infinite ease-in-out;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px var(--green); }
+  50% { opacity: 0.35; transform: scale(0.85); box-shadow: 0 0 2px var(--green); }
+}
+
+.tag {
+  display: inline-block; padding: 2px 7px; font-size: 0.68rem;
+  letter-spacing: 0.1em; border-radius: 3px; font-weight: bold; text-transform: uppercase;
+}
+.tag-gateway { background: rgba(255, 180, 84, 0.18); border: 1px solid var(--amber); color: var(--amber); }
+.tag-host { background: rgba(0, 240, 255, 0.18); border: 1px solid var(--cyan); color: var(--cyan); }
+.tag-device { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.18); color: var(--dim); }
+.tag-port { background: rgba(255, 46, 196, 0.15); border: 1px solid var(--magenta); color: var(--magenta); font-size: 0.72rem; margin: 1px; }
+
+/* Interactive Role/Hostname Graphic Trigger */
+.btn-intel-trigger {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.btn-intel-trigger:hover {
+  background: rgba(0, 240, 255, 0.12);
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan-glow);
+}
+
+.intel-icon {
+  font-size: 0.72rem;
+  color: var(--cyan);
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid var(--cyan);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.risk-badge {
+  display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 0.72rem; font-weight: bold;
+}
+.risk-CRITICAL { background: rgba(255, 77, 109, 0.2); border: 1px solid var(--red); color: var(--red); }
+.risk-HIGH { background: rgba(255, 180, 84, 0.2); border: 1px solid var(--amber); color: var(--amber); }
+.risk-MODERATE { background: rgba(0, 240, 255, 0.2); border: 1px solid var(--cyan); color: var(--cyan); }
+.risk-CLEAN { background: rgba(61, 255, 156, 0.15); border: 1px solid var(--green); color: var(--green); }
+
+/* Technopunk In-Page Modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(3, 5, 8, 0.88);
+  backdrop-filter: blur(4px);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-card {
+  background: var(--panel);
+  border: 2px solid var(--cyan);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 820px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 0 40px var(--cyan-glow);
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px; right: 20px;
+  background: transparent;
+  border: 1px solid var(--magenta);
+  color: var(--magenta);
+  font-family: 'Orbitron', monospace;
+  font-size: 1rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.modal-close:hover { background: var(--magenta); color: #fff; }
+
+
+    .nodes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 18px;
+    }
+
+    .node-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 18px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .node-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px var(--cyan-glow);
+    }
+
+    .node-ip {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-bottom: 2px;
+    }
+
+    .node-role {
+      font-size: 0.78rem;
+      color: var(--magenta);
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+
+    .node-os {
+      font-size: 0.76rem;
+      color: var(--dim);
+      margin-bottom: 8px;
+    }
+
+    .btn-node {
+      display: block;
+      text-align: center;
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      padding: 8px 12px;
+      border-radius: 4px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      margin-top: 8px;
+    }
+
+    .btn-node:hover {
+      background: var(--cyan);
+      color: #030508;
+      box-shadow: 0 0 15px var(--cyan-glow);
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      color: var(--cyan);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.88rem;
+      padding: 10px 16px;
+      border-radius: 4px;
+      outline: none;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="container">
+    <header>
+      <div class="glitch-title">INTEL NODES</div>
+      <div class="subtitle">⚡ SECONDARY TELEMETRY MATRIX // ALL TARGETS ⚡</div>
+
+      <div class="nav-bar">
+        <a href="../netcheck.html" class="btn-nav">
+          &larr; <span>RETURN TO LIVE MONITOR HUD</span>
+        </a>
+        <button class="btn-nav" onclick="location.reload()">
+          <span>&#8635; REFRESH DIRECTORY</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Search / Filter -->
+    <input type="text" id="nodeFilter" class="search-input" placeholder="// FILTER INTEL NODES (IP, VENDOR, OS, MAC, ROLE)..." onkeyup="filterNodes()">
+
+    <!-- Nodes Grid -->
+    <div class="nodes-grid" id="nodesContainer">
+      <div class="node-card" data-search="192.168.42.1 Netgear Default Gateway Netgear Network Appliance (Embedded Linux / BusyBox) 02:28:f8:6a:2c:e5">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CRITICAL">CRITICAL</span>
+        </div>
+        <div class="node-ip">192.168.42.1</div>
+        <div class="node-role">Default Gateway &middot; Netgear</div>
+        <div class="node-os">&gt; Netgear Network Appliance (Embedded Linux / BusyBox)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:28:f8:6a:2c:e5</code></span>
+            <span>RTT: <strong style="color:var(--green)">10.7 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (4): <span class="tag tag-port">53</span><span class="tag tag-port">80</span><span class="tag tag-port">443</span><span class="tag tag-port">5000</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>6 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.1.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.3 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:49:7f:d2:27:c3">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.3</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:49:7f:d2:27:c3</code></span>
+            <span>RTT: <strong style="color:var(--green)">8.3 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.3.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.4 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:d0:4a:1e:18:4a">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.4</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:d0:4a:1e:18:4a</code></span>
+            <span>RTT: <strong style="color:var(--green)">107.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.4.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.5 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:4a:2e:7d:ba:82">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.5</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:4a:2e:7d:ba:82</code></span>
+            <span>RTT: <strong style="color:var(--green)">211.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.5.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.7 Amazon Technologies Device Amazon Alexa / FireOS (Android) 02:cf:54:8f:ff:f7">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.7</div>
+        <div class="node-role">Device &middot; Amazon Technologies</div>
+        <div class="node-os">&gt; Amazon Alexa / FireOS (Android)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:cf:54:8f:ff:f7</code></span>
+            <span>RTT: <strong style="color:var(--green)">20.9 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.7.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.8 Unknown Device Embedded Firmware / Proprietary OS 02:17:c0:32:76:78">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.8</div>
+        <div class="node-role">Device &middot; Unknown</div>
+        <div class="node-os">&gt; Embedded Firmware / Proprietary OS</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:17:c0:32:76:78</code></span>
+            <span>RTT: <strong style="color:var(--green)">193.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.8.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.9 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:08:62:4b:3a:13">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.9</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:08:62:4b:3a:13</code></span>
+            <span>RTT: <strong style="color:var(--green)">70.8 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.9.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.10 Hon Hai Precision Ind. Device Generic Unix / Linux Host 02:9d:89:80:48:32">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CRITICAL">CRITICAL</span>
+        </div>
+        <div class="node-ip">192.168.42.10</div>
+        <div class="node-role">Device &middot; Hon Hai Precision Ind.</div>
+        <div class="node-os">&gt; Generic Unix / Linux Host</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:9d:89:80:48:32</code></span>
+            <span>RTT: <strong style="color:var(--green)">28.9 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (4): <span class="tag tag-port">21</span><span class="tag tag-port">23</span><span class="tag tag-port">80</span><span class="tag tag-port">443</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>6 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.10.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.13 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:64:3c:96:0e:e1">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.13</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:64:3c:96:0e:e1</code></span>
+            <span>RTT: <strong style="color:var(--green)">209.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.13.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.14 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:bf:f0:1b:a0:66">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.14</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:bf:f0:1b:a0:66</code></span>
+            <span>RTT: <strong style="color:var(--green)">48.9 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.14.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.19 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:36:55:ec:23:6d">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.19</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:36:55:ec:23:6d</code></span>
+            <span>RTT: <strong style="color:var(--green)">202.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.19.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.20 Espressif Device Smart IoT Device (ESP32 / FreeRTOS) 02:22:0d:28:cb:28">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.20</div>
+        <div class="node-role">Device &middot; Espressif</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:22:0d:28:cb:28</code></span>
+            <span>RTT: <strong style="color:var(--green)">29.4 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.20.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.22 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:13:3f:af:9c:eb">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.22</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:13:3f:af:9c:eb</code></span>
+            <span>RTT: <strong style="color:var(--green)">220.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.22.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.23 Google Device Google Cast / Android TV / Nest OS 02:44:8f:e7:26:3c">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-HIGH">HIGH RISK</span>
+        </div>
+        <div class="node-ip">192.168.42.23</div>
+        <div class="node-role">Device &middot; Google</div>
+        <div class="node-os">&gt; Google Cast / Android TV / Nest OS</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:44:8f:e7:26:3c</code></span>
+            <span>RTT: <strong style="color:var(--green)">13.5 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (1): <span class="tag tag-port">8443</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>2 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.23.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.26 Espressif Device Smart IoT Device (ESP32 / FreeRTOS) 02:34:10:31:db:b5">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.26</div>
+        <div class="node-role">Device &middot; Espressif</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:34:10:31:db:b5</code></span>
+            <span>RTT: <strong style="color:var(--green)">43.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.26.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.27 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:24:96:85:e5:b8">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.27</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:24:96:85:e5:b8</code></span>
+            <span>RTT: <strong style="color:var(--green)">203.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.27.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.28 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:a2:f7:cf:e7:21">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.28</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:a2:f7:cf:e7:21</code></span>
+            <span>RTT: <strong style="color:var(--green)">93.3 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.28.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.29 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:4c:e5:38:16:a0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.29</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:4c:e5:38:16:a0</code></span>
+            <span>RTT: <strong style="color:var(--green)">97.1 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.29.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.31 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:94:4f:ae:f7:b7">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.31</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:94:4f:ae:f7:b7</code></span>
+            <span>RTT: <strong style="color:var(--green)">195.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.31.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.33 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:54:76:16:a0:29">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.33</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:54:76:16:a0:29</code></span>
+            <span>RTT: <strong style="color:var(--green)">197.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.33.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.34 Shenzhen Chuangwei-RGB Electronics Device Smart TV Media Center (Android TV / Linux) 02:bc:d5:7f:9a:ca">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CRITICAL">CRITICAL</span>
+        </div>
+        <div class="node-ip">192.168.42.34</div>
+        <div class="node-role">Device &middot; Shenzhen Chuangwei-RGB Electronics</div>
+        <div class="node-os">&gt; Smart TV Media Center (Android TV / Linux)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:bc:d5:7f:9a:ca</code></span>
+            <span>RTT: <strong style="color:var(--green)">21.1 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (2): <span class="tag tag-port">8080</span><span class="tag tag-port">8443</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>3 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.34.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.35 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:a2:7e:b6:da:65">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.35</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:a2:7e:b6:da:65</code></span>
+            <span>RTT: <strong style="color:var(--green)">106.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.35.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.36 Tuya Smart Device Smart IoT Device (ESP32 / FreeRTOS) 02:36:83:ff:88:ff">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.36</div>
+        <div class="node-role">Device &middot; Tuya Smart</div>
+        <div class="node-os">&gt; Smart IoT Device (ESP32 / FreeRTOS)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:36:83:ff:88:ff</code></span>
+            <span>RTT: <strong style="color:var(--green)">65.6 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.36.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.38 Unknown Device Embedded Firmware / Proprietary OS 02:69:45:88:7f:60">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.38</div>
+        <div class="node-role">Device &middot; Unknown</div>
+        <div class="node-os">&gt; Embedded Firmware / Proprietary OS</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:69:45:88:7f:60</code></span>
+            <span>RTT: <strong style="color:var(--green)">15.1 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.38.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.41 Unknown Device Embedded Firmware / Proprietary OS 02:ae:78:e2:96:1d">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.41</div>
+        <div class="node-role">Device &middot; Unknown</div>
+        <div class="node-os">&gt; Embedded Firmware / Proprietary OS</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:ae:78:e2:96:1d</code></span>
+            <span>RTT: <strong style="color:var(--green)">543.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.41.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.42 Amazon Technologies Device Amazon Alexa / FireOS (Android) 02:72:9a:a2:e4:07">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.42</div>
+        <div class="node-role">Device &middot; Amazon Technologies</div>
+        <div class="node-os">&gt; Amazon Alexa / FireOS (Android)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:72:9a:a2:e4:07</code></span>
+            <span>RTT: <strong style="color:var(--green)">119.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.42.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.43 Amazon Technologies Device Amazon Alexa / FireOS (Android) 02:27:b4:ce:3b:e2">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.43</div>
+        <div class="node-role">Device &middot; Amazon Technologies</div>
+        <div class="node-os">&gt; Amazon Alexa / FireOS (Android)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:27:b4:ce:3b:e2</code></span>
+            <span>RTT: <strong style="color:var(--green)">44.1 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.43.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.46 Hui Zhou Gaoshengda Technology Device Embedded Firmware / Proprietary OS 02:21:ff:bf:a7:a0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.46</div>
+        <div class="node-role">Device &middot; Hui Zhou Gaoshengda Technology</div>
+        <div class="node-os">&gt; Embedded Firmware / Proprietary OS</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:21:ff:bf:a7:a0</code></span>
+            <span>RTT: <strong style="color:var(--green)">117.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.46.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.47 Unknown Device Embedded Firmware / Proprietary OS 02:93:1f:91:35:6e">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.47</div>
+        <div class="node-role">Device &middot; Unknown</div>
+        <div class="node-os">&gt; Embedded Firmware / Proprietary OS</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:93:1f:91:35:6e</code></span>
+            <span>RTT: <strong style="color:var(--green)">10.3 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.47.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.50 Microsoft Device Embedded Firmware / Proprietary OS 02:70:19:ba:f4:f9">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.50</div>
+        <div class="node-role">Device &middot; Microsoft</div>
+        <div class="node-os">&gt; Embedded Firmware / Proprietary OS</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:70:19:ba:f4:f9</code></span>
+            <span>RTT: <strong style="color:var(--green)">9.4 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.50.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.51 Unknown Device Embedded Firmware / Proprietary OS 02:43:be:42:7e:93">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.51</div>
+        <div class="node-role">Device &middot; Unknown</div>
+        <div class="node-os">&gt; Embedded Firmware / Proprietary OS</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:43:be:42:7e:93</code></span>
+            <span>RTT: <strong style="color:var(--green)">8.3 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.51.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.53 Unknown Device Embedded Firmware / Proprietary OS 02:0c:24:ce:55:c9">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.53</div>
+        <div class="node-role">Device &middot; Unknown</div>
+        <div class="node-os">&gt; Embedded Firmware / Proprietary OS</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:0c:24:ce:55:c9</code></span>
+            <span>RTT: <strong style="color:var(--green)">146.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.53.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.57 Parallels Host (This VM) Linux (Debian / Ubuntu Distribution) 02:46:41:0e:a7:52">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CRITICAL">CRITICAL</span>
+        </div>
+        <div class="node-ip">192.168.42.57</div>
+        <div class="node-role">Host (This VM) &middot; Parallels</div>
+        <div class="node-os">&gt; Linux (Debian / Ubuntu Distribution)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:46:41:0e:a7:52</code></span>
+            <span>RTT: <strong style="color:var(--green)">0.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (2): <span class="tag tag-port">80</span><span class="tag tag-port">5000</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>3 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.57.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.64 Unknown Device Embedded Firmware / Proprietary OS 02:7a:47:b7:74:7d">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.64</div>
+        <div class="node-role">Device &middot; Unknown</div>
+        <div class="node-os">&gt; Embedded Firmware / Proprietary OS</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:7a:47:b7:74:7d</code></span>
+            <span>RTT: <strong style="color:var(--green)">503.0 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.64.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.73 Raspberry Pi (Trading) Device Linux (Debian / Ubuntu Distribution) 02:98:91:27:62:be">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CRITICAL">CRITICAL</span>
+        </div>
+        <div class="node-ip">192.168.42.73</div>
+        <div class="node-role">Device &middot; Raspberry Pi (Trading)</div>
+        <div class="node-os">&gt; Linux (Debian / Ubuntu Distribution)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:98:91:27:62:be</code></span>
+            <span>RTT: <strong style="color:var(--green)">4.4 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (4): <span class="tag tag-port">22</span><span class="tag tag-port">80</span><span class="tag tag-port">139</span><span class="tag tag-port">445</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>7 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.73.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.80 Segate Technology Device Microsoft Windows Workstation / Server 02:b5:c9:35:9d:07">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CRITICAL">CRITICAL</span>
+        </div>
+        <div class="node-ip">192.168.42.80</div>
+        <div class="node-role">Device &middot; Segate Technology</div>
+        <div class="node-os">&gt; Microsoft Windows Workstation / Server</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:b5:c9:35:9d:07</code></span>
+            <span>RTT: <strong style="color:var(--green)">3.8 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (4): <span class="tag tag-port">80</span><span class="tag tag-port">139</span><span class="tag tag-port">443</span><span class="tag tag-port">445</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>6 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.80.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.84 Earda Technologies Device Embedded Firmware / Proprietary OS 02:78:8a:e7:d2:3e">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CLEAN">CLEAN / LOW</span>
+        </div>
+        <div class="node-ip">192.168.42.84</div>
+        <div class="node-role">Device &middot; Earda Technologies</div>
+        <div class="node-os">&gt; Embedded Firmware / Proprietary OS</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:78:8a:e7:d2:3e</code></span>
+            <span>RTT: <strong style="color:var(--green)">5.2 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (0): <span style="color:var(--dim)">None detected</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>0 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.84.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.120 Raspberry Pi (Trading) Device Linux (Debian / Ubuntu Distribution) 02:98:91:27:62:be">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CRITICAL">CRITICAL</span>
+        </div>
+        <div class="node-ip">192.168.42.120</div>
+        <div class="node-role">Device &middot; Raspberry Pi (Trading)</div>
+        <div class="node-os">&gt; Linux (Debian / Ubuntu Distribution)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:98:91:27:62:be</code></span>
+            <span>RTT: <strong style="color:var(--green)">9.7 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (4): <span class="tag tag-port">22</span><span class="tag tag-port">80</span><span class="tag tag-port">139</span><span class="tag tag-port">445</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>7 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.120.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.140 Netgear Device Netgear Network Appliance (Embedded Linux / BusyBox) 02:9b:c7:fa:8d:ef">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CRITICAL">CRITICAL</span>
+        </div>
+        <div class="node-ip">192.168.42.140</div>
+        <div class="node-role">Device &middot; Netgear</div>
+        <div class="node-os">&gt; Netgear Network Appliance (Embedded Linux / BusyBox)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:9b:c7:fa:8d:ef</code></span>
+            <span>RTT: <strong style="color:var(--green)">7.5 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (1): <span class="tag tag-port">80</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>4 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.140.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.150 Netgear Device Netgear Network Appliance (Embedded Linux / BusyBox) 02:f2:c4:e6:21:05">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CRITICAL">CRITICAL</span>
+        </div>
+        <div class="node-ip">192.168.42.150</div>
+        <div class="node-role">Device &middot; Netgear</div>
+        <div class="node-os">&gt; Netgear Network Appliance (Embedded Linux / BusyBox)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:f2:c4:e6:21:05</code></span>
+            <span>RTT: <strong style="color:var(--green)">19.7 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (1): <span class="tag tag-port">80</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>4 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.150.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.160 Netgear Device Netgear Network Appliance (Embedded Linux / BusyBox) 02:bb:75:f1:93:74">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CRITICAL">CRITICAL</span>
+        </div>
+        <div class="node-ip">192.168.42.160</div>
+        <div class="node-role">Device &middot; Netgear</div>
+        <div class="node-os">&gt; Netgear Network Appliance (Embedded Linux / BusyBox)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:bb:75:f1:93:74</code></span>
+            <span>RTT: <strong style="color:var(--green)">5.6 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (3): <span class="tag tag-port">53</span><span class="tag tag-port">80</span><span class="tag tag-port">443</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>5 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.160.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+      <div class="node-card" data-search="192.168.42.162 Netgear Device Netgear Network Appliance (Embedded Linux / BusyBox) 02:8a:ce:c2:a2:84">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span class="status-up"><span class="dot-up"></span> ONLINE</span>
+          <span class="risk-badge risk-CRITICAL">CRITICAL</span>
+        </div>
+        <div class="node-ip">192.168.42.162</div>
+        <div class="node-role">Device &middot; Netgear</div>
+        <div class="node-os">&gt; Netgear Network Appliance (Embedded Linux / BusyBox)</div>
+
+        <div style="margin: 12px 0; border-top: 1px solid rgba(0,240,255,0.1); padding-top: 8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--dim);margin-bottom:4px">
+            <span>MAC: <code>02:8a:ce:c2:a2:84</code></span>
+            <span>RTT: <strong style="color:var(--green)">5.5 ms</strong></span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--dim);margin-bottom:6px">
+            PORTS OPEN (3): <span class="tag tag-port">53</span><span class="tag tag-port">80</span><span class="tag tag-port">443</span>
+          </div>
+          <div style="font-size:0.72rem;color:var(--amber)">
+            CVE ADVISORIES: <strong>5 Flagged</strong>
+          </div>
+        </div>
+
+        <a href="device_192.168.42.162.html" class="btn-node">
+          ACCESS INTEL NODE &rarr;
+        </a>
+      </div>
+    </div>
+
+    <footer style="text-align:center;margin-top:40px;font-size:0.75rem;color:var(--dim);letter-spacing:0.2em">
+      [ INTEL NODES DIRECTORY &middot; /var/www/html/devices/index.html &middot; NET//CHECK v3.0 ]
+    </footer>
+  </div>
+
+  <script>
+    function filterNodes() {
+      const query = document.getElementById('nodeFilter').value.toLowerCase();
+      const cards = document.querySelectorAll('#nodesContainer .node-card');
+      cards.forEach(card => {
+        const text = (card.getAttribute('data-search') || '').toLowerCase();
+        card.style.display = text.includes(query) ? '' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+{
+  "timestamp": "2026-09-18 22:23:10",
+  "stage": "IDLE_MONITORING",
+  "progress_percent": 100,
+  "current_action": "Cycle complete. Waiting 20s until next sweep...",
+  "total_hosts": 254,
+  "live_hosts": 42,
+  "elapsed_seconds": 396.0,
+  "log_feed": [
+    {
+      "time": "22:23:05",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.27 (Tuya Smart)"
+    },
+    {
+      "time": "22:23:05",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.28 (Tuya Smart)"
+    },
+    {
+      "time": "22:23:06",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.29 (Tuya Smart)"
+    },
+    {
+      "time": "22:23:06",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.31 (Tuya Smart)"
+    },
+    {
+      "time": "22:23:06",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.33 (Tuya Smart)"
+    },
+    {
+      "time": "22:23:07",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.34 (Shenzhen Chuangwei-RGB Electronics)"
+    },
+    {
+      "time": "22:23:07",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.35 (Tuya Smart)"
+    },
+    {
+      "time": "22:23:07",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.36 (Tuya Smart)"
+    },
+    {
+      "time": "22:23:07",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.38 (Unknown)"
+    },
+    {
+      "time": "22:23:07",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.41 (Unknown)"
+    },
+    {
+      "time": "22:23:08",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.42 (Amazon Technologies)"
+    },
+    {
+      "time": "22:23:08",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.43 (Amazon Technologies)"
+    },
+    {
+      "time": "22:23:08",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.46 (Hui Zhou Gaoshengda Technology)"
+    },
+    {
+      "time": "22:23:08",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.47 (Unknown)"
+    },
+    {
+      "time": "22:23:08",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.50 (Microsoft)"
+    },
+    {
+      "time": "22:23:08",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.51 (Unknown)"
+    },
+    {
+      "time": "22:23:08",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.53 (Unknown)"
+    },
+    {
+      "time": "22:23:09",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.57 (Parallels)"
+    },
+    {
+      "time": "22:23:09",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.64 (Unknown)"
+    },
+    {
+      "time": "22:23:09",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.73 (Raspberry Pi (Trading))"
+    },
+    {
+      "time": "22:23:09",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.80 (Segate Technology)"
+    },
+    {
+      "time": "22:23:09",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.84 (Earda Technologies)"
+    },
+    {
+      "time": "22:23:09",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.120 (Raspberry Pi (Trading))"
+    },
+    {
+      "time": "22:23:09",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.140 (Netgear)"
+    },
+    {
+      "time": "22:23:10",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.150 (Netgear)"
+    },
+    {
+      "time": "22:23:10",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.160 (Netgear)"
+    },
+    {
+      "time": "22:23:10",
+      "level": "PROBE",
+      "msg": "Probing 192.168.42.162 (Netgear)"
+    },
+    {
+      "time": "22:23:10",
+      "level": "SUCCESS",
+      "msg": "All 42 nodes indexed. Generated deep telemetry profiles."
+    },
+    {
+      "time": "22:23:10",
+      "level": "SUCCESS",
+      "msg": "DEVICE JOINED: 192.168.42.13 (Tuya Smart) MAC: 02:64:3c:96:0e:e1"
+    },
+    {
+      "time": "22:23:10",
+      "level": "INFO",
+      "msg": "Standby until next telemetry sweep in 20s"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+# ── Dependencies ────────────────────────────────
+node_modules/
+
+# ── Local secrets / config (keep the .example) ──
+backend/config/connection.json
+
+# ── OS cruft ────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Python ──────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# ── Logs & temp ─────────────────────────────────
+*.log
+npm-debug.log*
